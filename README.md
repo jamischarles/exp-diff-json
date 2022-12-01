@@ -4,27 +4,35 @@
 
 
 ## TODO
-[ ] Set up playwright so we can add these features in there
-[ ] Write a few good tests around the first use case
+[x] Set up playwright so we can add these features in there
+[x] Write a few good tests around the first use case
 
 
 ## Feature statements
 [x] Will diff 2 JSON objects
-[ ] Will normalize key order between objects
+[x] Will normalize key order between objects
   SELF: Consider using just normal JSON and then hacking around the fact that it's an object expression (convert it to that so acorn / astring will work properly)
 
 
 ### Core Features
 Answers the following questions
-[ ] Are the keys the same, but in different order?
+[x] Are the keys the same, but in different order?
+[ ] Will indicate if JSON is valid syntax. the JSON syntax valid? (JSON.parse()) - will indicate to user if jSON is invalid 
+  [ ] Will show "mismatch / error" symbol if syntax is invalid 
+    [ ] ability to toggle this as an option  
+[ ] Ability to toggle to ignore key order		
+
 [ ] Are the keys different? Modified vs missing vs added
 [ ] Are the values on the keys different? (value vs type)
-[ ] Is the JSON syntax valid? (JSON.parse()) - will indicate to user if jSON is invalid 
 [ ] 
-
+[ ] Will show JSON in a pleasing way (codemirror?) (code folding etc)
+  TODO: DEFINE
 
 ## Internal assertions (non-behavior driven)
 [ ] Will convert valid JSON to correct AST representation and generate correct JSON that is ~ same as input JSON.
+
+LATER
+[ ] Set up GH actions pipeline to run the assertions with playwright, THEN deploy to vercel after they all pass. YAS
 
 
 
