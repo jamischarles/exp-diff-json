@@ -109,12 +109,14 @@
 <main>
  
 
-  <h2 class="diff-status-{diffStatus}">Diff</h2>
+  <h2 data-testid="diff-status-indicator" class="diff-status-{diffStatus}">Diff</h2>
   <textarea 
+	  data-testid="diff-field-a"
   on:input={(e) => {valA = e.target.value; runDiff()}}
   bind:value={valA} />
 
   <textarea 
+	  data-testid="diff-field-b"
   on:input={(e) => {valB = e.target.value; runDiff()}}
   bind:value={valB} />
 

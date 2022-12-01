@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+	"test": "npm run test:e2e",
+	"test:e2e": "npx playwright test --project=chromium --headed"
   },
   "devDependencies": {
+    "@playwright/test": "^1.28.1",
     "@sveltejs/vite-plugin-svelte": "^1.1.1",
     "acorn": "^8.8.1",
     "acorn-loose": "^8.3.0",
