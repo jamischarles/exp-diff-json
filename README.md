@@ -6,6 +6,8 @@
 ## TODO
 [x] Set up playwright so we can add these features in there
 [x] Write a few good tests around the first use case
+[ ] focus on USE CASES. try the work cal use case next. determine good UX and build something FAST to march thet use cases. focus on 10% incremental inprovements  
+
 
 
 ## Feature statements
@@ -27,6 +29,15 @@ Answers the following questions
 [ ] 
 [ ] Will show JSON in a pleasing way (codemirror?) (code folding etc)
   TODO: DEFINE
+  
+  
+## Consider
+* keep the original source so we can revert formatting thet we apply
+* show linting errors in rail wkth "fix" buttons
+* show "run prettier" option?
+* show word & line diff
+* copy all the jest repos in here
+* do a til writeup when done (in here?)
 
 ## Internal assertions (non-behavior driven)
 [ ] Will convert valid JSON to correct AST representation and generate correct JSON that is ~ same as input JSON.
