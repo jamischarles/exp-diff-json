@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Svelte</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+    <script src="https://unpkg.com/prettier@2.7.1/standalone.js"></script>
+<script src="https://unpkg.com/prettier@2.7.1/parser-babel.js"></script>
+<!-- <script src="https://unpkg.com/prettier@2.7.1/parser-json.js"></script> -->
+<script>
+  // problems we must solve
+  // Q: How can we sort the keys as part of the prettier process?
+  // before or after?
+
+  // DIFF
+  // sort the keys and diff by them
+  // do I really need prettier for that?
+  // not for the really quick & dirty version...
+
+
+  // First let's start out with the happy path.
+  // Assume that it's valid JSON...
+
+
+  const res = prettier.format('{"b": "first", "a": "second"}', {
+    parser: "json",
+    plugins: prettierPlugins,
+  });
+
+  console.log('res', res);
+</script>
+  </body>
+</html>
