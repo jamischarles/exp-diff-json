@@ -19,6 +19,8 @@
   */
 
   let diffStatus;
+  let statusBarAText = ""
+  let statusBarBText = ""
 
   let valA = `{"a": "testA", "b": "testB"}`;
   let valB = `{"b": "testB", "a": "testA"}`;
@@ -28,6 +30,15 @@
 
   const blockA = document.querySelector('#block-a');
   const blockB = document.querySelector('#block-b');
+
+  // TODO: move this to state?
+  function setStatusBar(aOrB, text) {
+	  if (aOrB === 'a') {
+		  statusBarAText = text;
+	  } else {
+		  statusBarBText = text;
+	  }
+  }
 
   
 
@@ -86,12 +97,31 @@
 
   // TODO: run this on valA and on valB
   function runDiff() {
-    // TODO: fix this normalizing step
-    const sortedAString = sortJSONKeys(valA);
-    const sortedBString = sortJSONKeys(valB);
+	  let localValA = valA;
+	  let localValB = valB;
 
 
-    if (sortedAString === sortedBString) {
+	  try {
+		  JSON.parse(valA)
+		  localValA = sortJSONKeys(valA);
+		  setStatusBar('a', "Valid JSON")
+	  } catch (e) {
+		  setStatusBar('a', "INVALID JSON")
+	  }
+
+
+	  // check for valid JSON
+	  try{
+		  JSON.parse(valB)
+		  // TODO: fix this normalizing step
+		  localValB = sortJSONKeys(valB);
+		  setStatusBar('b', "Valid JSON")
+	  }catch(e) {
+		  setStatusBar('b', "INVALID JSON")
+	  }
+
+
+    if (localValA === localValB) {
       diffStatus = "same";
     console.log('match');
     } else {
@@ -114,11 +144,13 @@
 	  data-testid="diff-field-a"
   on:input={(e) => {valA = e.target.value; runDiff()}}
   bind:value={valA} />
+  <div data-testid="status-bar-a">{statusBarAText}</div>
 
   <textarea 
 	  data-testid="diff-field-b"
   on:input={(e) => {valB = e.target.value; runDiff()}}
   bind:value={valB} />
+  <div data-testid="status-bar-b">{statusBarBText}</div>
 
   
 </main>
