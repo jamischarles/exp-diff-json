@@ -3,6 +3,25 @@ import { test, expect } from "@playwright/test";
 import * as base from "@playwright/test";
 import { MainPage } from "./main-page.js";
 
+// FIXME:  architecture (later?)
+//
+/*
+ * By default we try to extract as much context as possible, then fallback to less specific diffs. 
+ * When JSON parse fails, (for now) do a string diff
+ *
+ *
+* Different diff engines by language / context. 
+
+Use vitest in source unit tests for that logic. 
+
+Diff engine returns a report to object. 
+
+We can verify e2e that the report obj gets translated to UI properly for the various types. 
+
+But bulk of test will likely be verifying that the report is accurate 
+*/
+
+// FIXME: Find a better way to organize these blocks by feature ? 
 test.describe("UI on the page...", () => {
   // test hook. Doesn't need the describe block to work
   test.beforeEach(async ({ page }) => {
@@ -45,6 +64,7 @@ test.describe("UI on the page...", () => {
     );
   });
 });
+
 
 // FIXME: Find better feature grouping / naming here...
 test.describe("JSON test features...", () => {
@@ -103,6 +123,36 @@ test.describe("JSON test features...", () => {
     await expect(firstDiffStatusBar).toHaveText("Valid JSON");
     await expect(secondDiffStatusBar).toHaveText("INVALID JSON");
   });
+
+	test("If json is invalid, differ should still do a normal string diff" , async ({
+    page,
+  }) => {
+    const mainPage = new MainPage(page);
+    await mainPage.goto();
+    const { firstDiffInput, secondDiffInput, diffStatusIndicator } = mainPage;
+
+    const valAMatch = `a": "testA", "b" "testB"`;
+    const valBMatch = `a": "testA", "b" "testB"`;
+
+    const valAMismatch = `, "b" "testB"`;
+    const valBMismatch = `a": "testA", "b" "testB"`;
+
+    // fill with same (but INVALID syntax)
+    await firstDiffInput.fill(valAMatch);
+    await secondDiffInput.fill(valBMatch);
+
+    await expect(diffStatusIndicator).toHaveClass(/diff-status-same/);
+
+    // fill with same (but VALID syntax)
+    await firstDiffInput.fill(valAMismatch);
+    await secondDiffInput.fill(valBMismatch);
+
+    await expect(diffStatusIndicator).toHaveClass(/diff-status-not-same/);
+  });
 });
 
 // if either side (or both) has invalid JSON UI should correctly show if both sides match or not
+//
+// UI should show which features CAN be applied with the given input (sort strings should be disabled if invalid json)
+// UI should show what parsing engine was used for the diffing
+// UI should show what changes & transforms were applied 
