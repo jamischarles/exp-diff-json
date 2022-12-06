@@ -22,6 +22,10 @@
   let statusBarAText = ""
   let statusBarBText = ""
 
+  // OPTIONS: TODO: Should / can we make this an object?
+  // TODO: Figure out the best way to manage state properly in Svelte
+  let shouldSortKeys = false;
+
   let valA = `{"a": "testA", "b": "testB"}`;
   let valB = `{"b": "testB", "a": "testA"}`;
 
@@ -103,7 +107,7 @@
 
 	  try {
 		  JSON.parse(valA)
-		  localValA = sortJSONKeys(valA);
+		  localValA = (shouldSortKeys && sortJSONKeys(valA)) || valA;
 		  setStatusBar('a', "Valid JSON")
 	  } catch (e) {
 		  setStatusBar('a', "INVALID JSON")
@@ -114,7 +118,7 @@
 	  try{
 		  JSON.parse(valB)
 		  // TODO: fix this normalizing step
-		  localValB = sortJSONKeys(valB);
+		  localValB = (shouldSortKeys && sortJSONKeys(valB)) || valB;
 		  setStatusBar('b', "Valid JSON")
 	  }catch(e) {
 		  setStatusBar('b', "INVALID JSON")
@@ -140,6 +144,15 @@
  
 
   <h2 data-testid="diff-status-indicator" class="diff-status-{diffStatus}">Diff</h2>
+
+  <div id="options">
+	  <h3>Options</h3>
+	  <input type="checkbox" bind:checked={shouldSortKeys} id="sort-keys" data-testid="options-ignore-key-order" />
+      <label for="sort-keys">Ignore Key order (sort)</label>
+
+
+  </div>
+
   <textarea 
 	  data-testid="diff-field-a"
   on:input={(e) => {valA = e.target.value; runDiff()}}

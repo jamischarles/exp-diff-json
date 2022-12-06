@@ -3,14 +3,12 @@
 
 import { expect } from "@playwright/test";
 
-
 // test hooks are good for resuable pieces that don't export anything (like navigation & setup / teardown)
 // fixtures are great for things that need to return stuff (page, baseUrl are fixtures )
 //
 // use https://playwright.dev/docs/pom for resuable parts we want to expose
 // use fixtures for when you want to call parts of the POM (like "AddTodoItem") etc...
 //https://playwright.dev/docs/pom
-
 
 // page object model
 export class MainPage {
@@ -27,6 +25,8 @@ export class MainPage {
     this.secondDiffStatusBar = page.getByTestId("status-bar-b");
 
     this.diffStatusIndicator = page.getByTestId("diff-status-indicator");
+
+    // this.options = page.page.getByTestId("diff-options");
   }
 
   async goto() {
@@ -45,3 +45,4 @@ export class MainPage {
   //    await this.pomLink.click();
   //  }
 }
+

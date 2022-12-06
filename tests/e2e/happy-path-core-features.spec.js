@@ -21,7 +21,7 @@ We can verify e2e that the report obj gets translated to UI properly for the var
 But bulk of test will likely be verifying that the report is accurate 
 */
 
-// FIXME: Find a better way to organize these blocks by feature ? 
+// FIXME: Find a better way to organize these blocks by feature ?
 test.describe("UI on the page...", () => {
   // test hook. Doesn't need the describe block to work
   test.beforeEach(async ({ page }) => {
@@ -65,10 +65,11 @@ test.describe("UI on the page...", () => {
   });
 });
 
-
 // FIXME: Find better feature grouping / naming here...
 test.describe("JSON test features...", () => {
-  test("ignore JSON KEY order: 2 input fields indicate MATCH if JSON keys are in wrong order, but are otherwise identical", async ({
+  // TODO: Shorten this...
+  // TODO: Own section for options?
+  test("ignore JSON KEY order: If 'ignore key order' is UN-checked, AND json is valid, then key order will be RESPECTED in diff operation", async ({
     page,
     baseURL,
   }) => {
@@ -77,13 +78,53 @@ test.describe("JSON test features...", () => {
     await mainPage.goto();
     const { firstDiffInput, secondDiffInput, diffStatusIndicator } = mainPage;
 
+    const shouldIgnoreKeyOrder = await page
+      .getByTestId("options-ignore-key-order")
+      .isChecked();
+
     const valA = `{"a": "testA", "b": "testB"}`;
     const valB = `{"b": "testB", "a": "testA"}`;
+
+    // 3 scenarios to test
+    // FIXME: this is where unit testing really comes uin
 
     // fill with valid input
     await firstDiffInput.fill(valA);
     await secondDiffInput.fill(valB);
 
+    expect(shouldIgnoreKeyOrder).toBeFalsy();
+    await expect(diffStatusIndicator).toHaveClass(/diff-status-not-same/);
+  });
+
+  test("ignore JSON KEY order: If 'ignore key order' is CHECKED, AND json is valid, then key order will be IGNORED in diff operation", async ({
+    page,
+    baseURL,
+  }) => {
+    // FIXME: Can I somehow expose this from before hook? Maybe that's where the fixture comes in
+    const mainPage = new MainPage(page);
+    await mainPage.goto();
+    const { firstDiffInput, secondDiffInput, diffStatusIndicator } = mainPage;
+
+    // check the checkbox
+    await page.getByTestId("options-ignore-key-order").check();
+
+    const shouldIgnoreKeyOrder = await page
+      .getByTestId("options-ignore-key-order")
+      .isChecked();
+
+    const valA = `{"a": "testA", "b": "testB"}`;
+    const valB = `{"b": "testB", "a": "testA"}`;
+
+    // 3 scenarios to test
+    // FIXME: this is where unit testing really comes uin
+
+    // fill with valid input
+    await firstDiffInput.fill(valA);
+    await secondDiffInput.fill(valB);
+
+    console.log("shouldIgnoreKeyOrder", shouldIgnoreKeyOrder);
+
+    expect(shouldIgnoreKeyOrder).toBeTruthy();
     await expect(diffStatusIndicator).toHaveClass(/diff-status-same/);
   });
 
@@ -94,13 +135,19 @@ test.describe("JSON test features...", () => {
   }) => {
     const mainPage = new MainPage(page);
     await mainPage.goto();
-    const { firstDiffInput, secondDiffInput, firstDiffStatusBar, secondDiffStatusBar, diffStatusIndicator } = mainPage;
+    const {
+      firstDiffInput,
+      secondDiffInput,
+      firstDiffStatusBar,
+      secondDiffStatusBar,
+      diffStatusIndicator,
+    } = mainPage;
 
     const valAInvalid = `a": "testA", "b": "testB"}`;
     const valBInvalid = `{"b": testB", "a" "testA"`;
 
     const valAValid = `{"a": "testA", "b": "testB"}`;
-    const valBValid = `{"b": "testB", "a": "testA"}`;
+    const valBValid = `{"a": "testA", "b": "testB"}`;
 
     // fill both with IN-VALID input
     await firstDiffInput.fill(valAInvalid);
@@ -124,7 +171,7 @@ test.describe("JSON test features...", () => {
     await expect(secondDiffStatusBar).toHaveText("INVALID JSON");
   });
 
-	test("If json is invalid, differ should still do a normal string diff" , async ({
+  test("If json is invalid, differ should still do a normal string diff", async ({
     page,
   }) => {
     const mainPage = new MainPage(page);
@@ -151,8 +198,10 @@ test.describe("JSON test features...", () => {
   });
 });
 
+// UI segment?
+
 // if either side (or both) has invalid JSON UI should correctly show if both sides match or not
 //
 // UI should show which features CAN be applied with the given input (sort strings should be disabled if invalid json)
 // UI should show what parsing engine was used for the diffing
-// UI should show what changes & transforms were applied 
+// UI should show what changes & transforms were applied
