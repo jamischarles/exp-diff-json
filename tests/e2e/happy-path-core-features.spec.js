@@ -128,6 +128,44 @@ test.describe("JSON test features...", () => {
     await expect(diffStatusIndicator).toHaveClass(/diff-status-same/);
   });
 
+  test("updating any options should re-render and perform diff operation again", async ({
+    page,
+    baseURL,
+  }) => {
+    // FIXME: Can I somehow expose this from before hook? Maybe that's where the fixture comes in
+    const mainPage = new MainPage(page);
+    await mainPage.goto();
+    const { firstDiffInput, secondDiffInput, diffStatusIndicator } = mainPage;
+
+    let shouldIgnoreKeyOrder = await page
+      .getByTestId("options-ignore-key-order")
+      .isChecked();
+
+    const valA = `{"a": "testA", "b": "testB"}`;
+    const valB = `{"b": "testB", "a": "testA"}`;
+
+    // 3 scenarios to test
+    // FIXME: this is where unit testing really comes uin
+
+    // fill with valid input
+    await firstDiffInput.fill(valA);
+    await secondDiffInput.fill(valB);
+
+	  // unchecked, then...
+    expect(shouldIgnoreKeyOrder).toBeFalsy();
+
+    // check the checkbox
+    await page.getByTestId("options-ignore-key-order").check();
+
+    shouldIgnoreKeyOrder = await page
+      .getByTestId("options-ignore-key-order")
+      .isChecked();
+
+	  // now it's checked and diff status should be "same" now
+    expect(shouldIgnoreKeyOrder).toBeTruthy();
+    await expect(diffStatusIndicator).toHaveClass(/diff-status-same/);
+  });
+
   // JSON valid / linting features
   test("If json is malformed (parse error) in either window, indicate with red/green if it's valid / invalid syntax", async ({
     page,

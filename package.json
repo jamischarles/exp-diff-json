@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
 	"test": "npm run test:e2e",
-	"test:e2e": "npx playwright test --project=chromium --headed"
+	"test:e2e": "npx playwright test --project=chromium "
   },
   "devDependencies": {
     "@playwright/test": "^1.28.1",

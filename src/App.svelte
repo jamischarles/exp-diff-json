@@ -104,7 +104,6 @@
 	  let localValA = valA;
 	  let localValB = valB;
 
-
 	  try {
 		  JSON.parse(valA)
 		  localValA = (shouldSortKeys && sortJSONKeys(valA)) || valA;
@@ -147,7 +146,7 @@
 
   <div id="options">
 	  <h3>Options</h3>
-	  <input type="checkbox" bind:checked={shouldSortKeys} id="sort-keys" data-testid="options-ignore-key-order" />
+	  <input type="checkbox" bind:checked={shouldSortKeys} on:change={runDiff}  id="sort-keys" data-testid="options-ignore-key-order" />
       <label for="sort-keys">Ignore Key order (sort)</label>
 
 
