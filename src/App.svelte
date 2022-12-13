@@ -1,139 +1,81 @@
-<script>
-  import svelteLogo from './assets/svelte.svg'
-  import Counter from './lib/Counter.svelte'
+<script lang='ts'>
+  import {diffJSON} from './lib/diff-engines/json.js'	
+  import {field_A_user_input, field_B_user_input, is_A_syntax_valid, is_B_syntax_valid, diffIsMatch, isDiffDirty, getCurrentDiffOptions, field_A_to_render, field_B_to_render, optShouldSortKeys, optShouldPrettyPrint} from './store.ts';
 
-/* Modules */
-  // import * as acorn from 'acorn-loose' // error tolerant (will guess)
-  import * as acorn from 'acorn' // error tolerant (will guess)
-  import * as walk from 'acorn-walk'
+  // FIXME:refactor according to a.* and b.* and shared/common/misc whatever...
+  // use a derived store?
 
-  // import * as parse from 'json-to-ast' // abandoned for now because no easy way to generate valid JSON from that ast. Let's try acorn again...
-  import { generate } from 'astring' // Q: Can we convert ^ JSON-ast to JS with astring?
-  // TODO: move this out into it's own VANILLA module (LATER)
-
-  // TOOD: 
-  /*
-  0. Color whole thing green if same - DONE
-  1. Ignore styling differences (Prettier?)
-  2. Ignore sorting differences (AST?) Or prettier plugin? Or do it from scratch first? Hacky first. Doesn't need to be very stable at first.
+  /* TODO: next
+  1. Run the diff on load
+  2. Subscribe to all the option changes and run diff when that happens. (controlled from UI here)
   */
 
-  let diffStatus;
-  let statusBarAText = ""
-  let statusBarBText = ""
 
   // OPTIONS: TODO: Should / can we make this an object?
   // TODO: Figure out the best way to manage state properly in Svelte
-  let shouldSortKeys = false;
+  // OPTIONS: TODO: orgnaize these better? Maybe in an object?
+  // let shouldSortKeys = $optShouldSortKeys;
+  // let shouldPrettyPrint = $optShouldPrettyPrint;
 
-  let valA = `{"a": "testA", "b": "testB"}`;
-  let valB = `{"b": "testB", "a": "testA"}`;
 
   // let valA = `{"a": "testA", "b": "testB"}`;
   // let valB = `{b: 'testB', a: 'testA'}`;
 
-  const blockA = document.querySelector('#block-a');
-  const blockB = document.querySelector('#block-b');
 
-  // TODO: move this to state?
-  function setStatusBar(aOrB, text) {
-	  if (aOrB === 'a') {
-		  statusBarAText = text;
-	  } else {
-		  statusBarBText = text;
+
+  $field_A_user_input = `{"a": "testA", "b": "testB"}`;
+  $field_B_user_input = `{"b": "testB", "a": "testA"}`;
+
+  // will run the first time it subscribes
+  isDiffDirty.subscribe(e=> {
+	  console.log('Diff dirty UPDATE', e);
+	  // if diff is dirty, run the update
+	  if ($isDiffDirty) {
+		  const diffOptions = getCurrentDiffOptions();
+		  const diffResult = diffJSON($field_A_user_input, $field_B_user_input, diffOptions);
+		  isDiffDirty.set(false);
+
+		  // FIXME: is this the right place for all this?
+		  if (diffResult.isMatch) {
+			  diffIsMatch.set(true);
+		  } else {
+			  diffIsMatch.set(false);
+		  }
+
+		  // update the store so the fields in the UI will reflect these values
+		  $field_A_to_render = diffResult.a.val;
+		  $field_B_to_render = diffResult.b.val;
+
+		  // is syntax valid?
+		  // TODO: can we have some sort of "processResult()" function that has a bunch of actions based on that somewhere?
+
+		  // bool
+		  $is_A_syntax_valid = diffResult.a.isSyntaxValid;
+		  $is_B_syntax_valid = diffResult.b.isSyntaxValid;
 	  }
-  }
-
-  
-
-  // TODO: Move this to an external file
-  // first level sorting only...
-  function sortJSONKeys(inputString) {
-    let ast = acorn.parse("const obj = " + inputString, {});
-    console.log('result', ast);
-
-
-    walk.simple(ast, {
-      Literal(node) {
-        console.log(`Found a literal: ${node.value}`)
-      },
-      VariableDeclaration(node) {
-        console.log("Found a VariableDeclaration:", node)
-      },
-      ObjectExpression(node) {
-        
-        console.log("Found a ObjectExpression:", node)
-        // SORT
-        node.properties.sort((nodeA,nodeB)=>{
-          // debugger;
-          const keyA = nodeA?.key?.value;
-          const keyB = nodeB?.key?.value;
-
-          // Q: How should I sort if one is a string and one isn't? or do all keys HAVE to be keys?
-          // MUST be a) string or b) Symbol
-          if (typeof keyA === "string" && typeof keyB === "string") {
-            let result = keyA.localeCompare(keyB);
-
-            if (result > 0) return 1;
-            if (result < 0) return -1;
-            return 0;
-          }
-
-          // just leave order as is if not a string
-          return 0;
-
-        })
-        console.log("Found a ObjectExpression: SORTED", node)
-
-
-        
-      }
   })
 
-  
 
 
-    let sortedJsonString = generate(ast)
-    console.log('##GENERATED OUTPUT:!!', sortedJsonString);
 
-    return sortedJsonString;
-  }
+
+  // Data flow.
+  // update the store. Updates the UI. Just like redux
 
   // TODO: run this on valA and on valB
-  function runDiff() {
-	  let localValA = valA;
-	  let localValB = valB;
-
-	  try {
-		  JSON.parse(valA)
-		  localValA = (shouldSortKeys && sortJSONKeys(valA)) || valA;
-		  setStatusBar('a', "Valid JSON")
-	  } catch (e) {
-		  setStatusBar('a', "INVALID JSON")
-	  }
+  // TODO: Where should this be? This should be in diff-engines in lib prolly
 
 
-	  // check for valid JSON
-	  try{
-		  JSON.parse(valB)
-		  // TODO: fix this normalizing step
-		  localValB = (shouldSortKeys && sortJSONKeys(valB)) || valB;
-		  setStatusBar('b', "Valid JSON")
-	  }catch(e) {
-		  setStatusBar('b', "INVALID JSON")
-	  }
+  // subscriptions should be here. Calling runDiff should be here. THIS is the orchestrator. This initiates state updates etc
 
 
-    if (localValA === localValB) {
-      diffStatus = "same";
-    console.log('match');
-    } else {
-      diffStatus = "not-same";
-      console.log('no match');
-    }
-  }
+  // on options change just update the store? Is how that works?
 
-  runDiff();
+
+  // TODO: build the status bar from state like we do with vim 
+
+
+// function updateOnUserInput
 
 </script>
 
@@ -142,27 +84,30 @@
 <main>
  
 
-  <h2 data-testid="diff-status-indicator" class="diff-status-{diffStatus}">Diff</h2>
+  <h2 data-testid="diff-status-indicator" class="diff-status-{$diffIsMatch ? 'same' : 'not-same'}">Diff</h2>
 
   <div id="options">
 	  <h3>Options</h3>
-	  <input type="checkbox" bind:checked={shouldSortKeys} on:change={runDiff}  id="sort-keys" data-testid="options-ignore-key-order" />
+	  <input type="checkbox" bind:checked={$optShouldSortKeys} id="sort-keys" data-testid="options-ignore-key-order" />
       <label for="sort-keys">Ignore Key order (sort)</label>
+
+	  <input type="checkbox" bind:checked={$optShouldPrettyPrint}  id="pretty-print" data-testid="options-format-pretty-print" />
+      <label for="pretty-print">Pretty-print/format</label>
 
 
   </div>
 
   <textarea 
-	  data-testid="diff-field-a"
-  on:input={(e) => {valA = e.target.value; runDiff()}}
-  bind:value={valA} />
-  <div data-testid="status-bar-a">{statusBarAText}</div>
+			 on:input={(e)=> $field_A_user_input = e.target.value}
+	 data-testid="diff-field-a"
+	 value={$field_A_to_render} />
+  <div data-testid="status-bar-a">{$is_A_syntax_valid ? "Valid JSON": "INVALID JSON"}</div>
 
   <textarea 
+			 on:input={(e)=> $field_B_user_input = e.target.value}
 	  data-testid="diff-field-b"
-  on:input={(e) => {valB = e.target.value; runDiff()}}
-  bind:value={valB} />
-  <div data-testid="status-bar-b">{statusBarBText}</div>
+  value={$field_B_to_render} />
+  <div data-testid="status-bar-b">{$is_B_syntax_valid ? "Valid JSON": "INVALID JSON"}</div>
 
   
 </main>

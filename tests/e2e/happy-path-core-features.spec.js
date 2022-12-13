@@ -24,10 +24,10 @@ But bulk of test will likely be verifying that the report is accurate
 // FIXME: Find a better way to organize these blocks by feature ?
 test.describe("UI on the page...", () => {
   // test hook. Doesn't need the describe block to work
-  test.beforeEach(async ({ page }) => {
-    const mainPage = new MainPage(page);
-    await mainPage.goto();
-  });
+  // test.beforeEach(async ({ page }) => {
+  //   const mainPage = new MainPage(page);
+  //   await mainPage.goto();
+  // });
 
   // FIXME: Split 2nd and first half out
   test("shows 2 input fields. If JSON string in fields MATCHES indicator shows GREEN", async ({
@@ -151,7 +151,7 @@ test.describe("JSON test features...", () => {
     await firstDiffInput.fill(valA);
     await secondDiffInput.fill(valB);
 
-	  // unchecked, then...
+    // unchecked, then...
     expect(shouldIgnoreKeyOrder).toBeFalsy();
 
     // check the checkbox
@@ -161,7 +161,7 @@ test.describe("JSON test features...", () => {
       .getByTestId("options-ignore-key-order")
       .isChecked();
 
-	  // now it's checked and diff status should be "same" now
+    // now it's checked and diff status should be "same" now
     expect(shouldIgnoreKeyOrder).toBeTruthy();
     await expect(diffStatusIndicator).toHaveClass(/diff-status-same/);
   });
@@ -235,6 +235,70 @@ test.describe("JSON test features...", () => {
     await expect(diffStatusIndicator).toHaveClass(/diff-status-not-same/);
   });
 });
+
+// FORMATTING & Visualizations ###################################################################3
+test.describe("The visual diff result", () => {
+  // FIXME: Split 2nd and first half out
+  test("should be pretty printed only if 'format/pretty-print' option is checked", async ({
+    page,
+  }) => {
+    const mainPage = new MainPage(page);
+    await mainPage.goto();
+
+    const valA = `{"a": "testA", "b": "testB"}`;
+
+    let shouldPrettyPrint = await page
+      .getByTestId("options-format-pretty-print")
+      .isChecked();
+
+    // fill with valid input
+    await mainPage.firstDiffInput.fill(valA);
+
+    const expectedFormattedResult = `{
+"a": "testA",
+ "b": "testB"
+}`;
+
+    // expect normal formatting (no formatting)
+    expect(shouldPrettyPrint).toBeFalsy();
+    expect(await mainPage.firstDiffInput.inputValue()).toBe(valA);
+
+    await page.getByTestId("options-format-pretty-print").check();
+
+    shouldPrettyPrint = await page
+      .getByTestId("options-format-pretty-print")
+      .isChecked();
+
+    // expect pretty-print formatting
+    expect(shouldPrettyPrint).toBeTruthy();
+    expect(await mainPage.firstDiffInput.inputValue()).toBe(
+      expectedFormattedResult
+    );
+
+
+
+	  // uncheck and it should be unformatted again
+    await page.getByTestId("options-format-pretty-print").uncheck();
+
+    shouldPrettyPrint = await page
+      .getByTestId("options-format-pretty-print")
+      .isChecked();
+
+    expect(shouldPrettyPrint).toBeFalsy();
+    expect(await mainPage.firstDiffInput.inputValue()).toBe(
+     valA 
+    );
+
+    // await expect(mainPage.diffStatusIndicator).toHaveClass(/diff-status-same/);
+  });
+});
+
+// Maintain original input so it's easy to rollback to that when certain settings are checked.
+// TODO: maintain an undo[] cache for when operations are applied
+// We need to have a base case... When ever options change we use the base case, then apply the operations on top of that
+// TODO: Use vitest for this?
+
+//
 
 // UI segment?
 
